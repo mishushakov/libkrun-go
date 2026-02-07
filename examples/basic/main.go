@@ -21,7 +21,7 @@ func main() {
 
 	rootfs := os.Args[1]
 	execPath := os.Args[2]
-	argv := os.Args[2:]
+	argv := os.Args[3:]
 
 	if err := run(rootfs, execPath, argv); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

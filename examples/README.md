@@ -2,7 +2,21 @@
 
 ## Prerequisites
 
-You need libkrun built and installed on your system.
+You need libkrun and libkrunfw installed on your system.
+
+### libkrunfw (firmware)
+
+libkrunfw bundles a Linux kernel used by the microVM. On macOS it is available via Homebrew:
+
+```bash
+brew install slp/krun/libkrunfw
+```
+
+If libkrun was installed to `/usr/local/lib` but Homebrew puts libkrunfw in `/opt/homebrew`, symlink it:
+
+```bash
+sudo ln -sf /opt/homebrew/opt/libkrunfw/lib/libkrunfw.5.dylib /usr/local/lib/
+```
 
 ### Building libkrun from source
 
@@ -24,15 +38,17 @@ export DYLD_LIBRARY_PATH=/path/to/lib:$DYLD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/path/to/lib:$LD_LIBRARY_PATH
 ```
 
-### macOS (Homebrew)
+### macOS: Hypervisor entitlement
 
-libkrunfw (the firmware) is available via Homebrew:
+On macOS, any binary that uses Hypervisor.framework must be signed with the `com.apple.security.hypervisor` entitlement. This means **`go run` will not work** for examples that start a VM — you must build, sign, then run:
 
 ```bash
-brew install libkrunfw
+go build -o basic .
+codesign --entitlements entitlements.plist --force -s - basic
+./basic /path/to/rootfs /bin/uname -a
 ```
 
-libkrun itself must be built from source (see above).
+An `entitlements.plist` is provided in the `basic/` example directory. You can reuse it for other examples.
 
 ## Build tags
 
@@ -95,29 +111,38 @@ Runs a command inside a microVM using a host directory as the root filesystem.
 
 ```bash
 cd examples/basic
-go run . /path/to/rootfs /bin/uname -a
+go build -o basic .
+codesign --entitlements entitlements.plist --force -s - basic
+./basic /path/to/rootfs /bin/uname -a
 ```
 
-The rootfs directory should contain a minimal Linux filesystem (with `/bin`, `/lib`, etc.). You can extract one from a container image or use a tool like `debootstrap`:
+The rootfs directory should contain a minimal Linux filesystem (with `/bin`, `/lib`, etc.). The easiest way is to use the included helper script to extract one from a Docker image:
 
 ```bash
-# Debian/Ubuntu — create a minimal rootfs
-sudo debootstrap --variant=minbase bookworm /tmp/rootfs
+# Create a rootfs from an Alpine image
+../mkrootfs.sh alpine ./rootfs
 
-# Or extract from a Docker image
-mkdir /tmp/rootfs
-docker export $(docker create alpine) | tar -C /tmp/rootfs -xf -
+# Or from Ubuntu
+../mkrootfs.sh ubuntu:22.04 ./rootfs
+```
+
+You can also create one manually with `debootstrap`:
+
+```bash
+sudo debootstrap --variant=minbase bookworm ./rootfs
 ```
 
 ### vm-with-disk — Boot from a disk image
 
 Boots a microVM from a disk image with a custom kernel and optional virtio-fs shared directory.
 
-This example requires the `krun_blk` build tag since it uses disk images:
+This example requires the `krun_blk` build tag since it uses disk images. On macOS, you must build and sign the binary (see [macOS: Hypervisor entitlement](#macos-hypervisor-entitlement)):
 
 ```bash
 cd examples/vm-with-disk
-go run -tags krun_blk . \
+go build -tags krun_blk -o vm-with-disk .
+codesign --entitlements ../basic/entitlements.plist --force -s - vm-with-disk
+./vm-with-disk \
   -kernel /path/to/vmlinux \
   -disk /path/to/rootfs.ext4
 ```
@@ -137,7 +162,7 @@ All flags:
 Example with a shared directory:
 
 ```bash
-go run -tags krun_blk . \
+./vm-with-disk \
   -kernel /path/to/vmlinux \
   -disk /path/to/rootfs.ext4 \
   -shared /home/user/workspace \
@@ -166,6 +191,12 @@ sudo umount /mnt
 
 ## Troubleshooting
 
+**`Couldn't find or load libkrunfw.5.dylib`** — libkrunfw is not installed or not in the library search path. Install it via Homebrew and symlink if needed (see [Prerequisites](#prerequisites)).
+
+**`VmSetup(VmCreate)`** (macOS) — The binary is missing the Hypervisor entitlement. You cannot use `go run` for examples that start a VM. Build and sign the binary instead (see [macOS: Hypervisor entitlement](#macos-hypervisor-entitlement)).
+
+**`TooLarge` panic on aarch64** — The kernel command line exceeded the 2048-byte limit on aarch64. This typically happens when passing `nil` for the environment in `SetExec`, which inherits the full host environment. Pass an explicit minimal environment instead.
+
 **`Undefined symbols for architecture`** — Your libkrun was built without some optional features. Use build tags to match your build (see [Build tags](#build-tags) above), or rebuild libkrun with the needed features:
 
 ```bash
@@ -177,7 +208,7 @@ sudo make install
 **`library not found for -lkrun`** — libkrun is not installed or not in the linker search path. Build and install it, or set `CGO_LDFLAGS`:
 
 ```bash
-CGO_LDFLAGS="-L/path/to/libkrun/target/release" go run .
+CGO_LDFLAGS="-L/path/to/libkrun/target/release" go build .
 ```
 
 **`dyld: Library not loaded: libkrun.dylib`** (macOS runtime) — The dynamic library isn't in the runtime search path:
