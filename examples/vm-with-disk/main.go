@@ -16,13 +16,13 @@ import (
 
 func main() {
 	var (
-		kernel   = flag.String("kernel", "", "path to kernel image")
-		disk     = flag.String("disk", "", "path to root disk image (ext4)")
-		format   = flag.String("format", "raw", "disk format: raw, qcow2, vmdk")
-		shared   = flag.String("shared", "", "host directory to share via virtio-fs")
-		vcpus    = flag.Int("vcpus", 2, "number of vCPUs")
-		ram      = flag.Int("ram", 1024, "RAM in MiB")
-		cmdline  = flag.String("cmdline", "console=hvc0 root=/dev/vda1 rw", "kernel command line")
+		kernel  = flag.String("kernel", "", "path to kernel image")
+		disk    = flag.String("disk", "", "path to root disk image (ext4)")
+		format  = flag.String("format", "raw", "disk format: raw, qcow2, vmdk")
+		shared  = flag.String("shared", "", "host directory to share via virtio-fs")
+		vcpus   = flag.Int("vcpus", 2, "number of vCPUs")
+		ram     = flag.Int("ram", 1024, "RAM in MiB")
+		cmdline = flag.String("cmdline", "console=hvc0 root=/dev/vda1 rw", "kernel command line")
 	)
 	flag.Parse()
 
