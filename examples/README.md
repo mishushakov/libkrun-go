@@ -112,14 +112,14 @@ Runs a command inside a microVM using a host directory as the root filesystem.
 A pre-built Debian rootfs is included at `rootfs/` for quick testing. To create your own from a Docker image, use the included helper script:
 
 ```bash
-./mkrootfs.sh alpine ./my-rootfs
-./mkrootfs.sh ubuntu:22.04 ./my-rootfs
+./mkrootfs.sh alpine ./rootfs
+./mkrootfs.sh ubuntu:22.04 ./rootfs
 ```
 
 Or create one manually with `debootstrap`:
 
 ```bash
-sudo debootstrap --variant=minbase bookworm ./my-rootfs
+sudo debootstrap --variant=minbase bookworm ./rootfs
 ```
 
 Build, sign, and run (macOS):
@@ -128,7 +128,7 @@ Build, sign, and run (macOS):
 cd examples/basic
 go build -o basic .
 codesign --entitlements entitlements.plist --force -s - basic
-./basic ../rootfs /bin/uname -a
+./basic ./rootfs /bin/uname -a
 ```
 
 On Linux, skip the `codesign` step.

@@ -1,1 +1,5 @@
 examples/basic/rootfs
+examples/basic/basic
+examples/vm-with-disk/vm-with-disk
+examples/vm-with-disk/rootfs.ext4
+examples/features/features

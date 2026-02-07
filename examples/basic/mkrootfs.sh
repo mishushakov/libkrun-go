@@ -8,7 +8,7 @@ usage() {
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "  $0 alpine" >&2
-	echo "  $0 ubuntu:22.04 ./my-rootfs" >&2
+	echo "  $0 ubuntu:22.04 ./rootfs" >&2
 	exit 1
 }
 
