@@ -52,8 +52,14 @@ func run(rootfs, execPath string, argv []string) error {
 	}
 
 	// Set the executable to run inside the VM.
-	// Passing nil for envp auto-inherits the host environment.
-	if err := ctx.SetExec(execPath, argv, nil); err != nil {
+	// Pass a minimal environment — inheriting the full host environment
+	// (nil) can exceed the kernel command line limit on aarch64 (2048 bytes).
+	env := []string{
+		"PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+		"HOME=/root",
+		"TERM=xterm-256color",
+	}
+	if err := ctx.SetExec(execPath, argv, env); err != nil {
 		return fmt.Errorf("set exec: %w", err)
 	}
 
