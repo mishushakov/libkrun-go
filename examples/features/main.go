@@ -11,7 +11,7 @@ import (
 	"os"
 	"syscall"
 
-	"e2b.dev/libkrun-go/krun"
+	"github.com/mishushakov/libkrun-go/krun"
 )
 
 func main() {

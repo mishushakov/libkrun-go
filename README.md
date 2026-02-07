@@ -5,7 +5,7 @@ Go bindings for [libkrun](https://github.com/containers/libkrun), a dynamic libr
 ## Installation
 
 ```bash
-go get e2b.dev/libkrun-go/krun
+go get github.com/mishushakov/libkrun-go/krun
 ```
 
 libkrun must be installed on your system. The bundled header in `libkrun/include/libkrun.h` is used at build time, but the shared library (`libkrun.so` or `libkrun.dylib`) must be available to the linker.
@@ -37,7 +37,7 @@ import (
 	"fmt"
 	"os"
 
-	"e2b.dev/libkrun-go/krun"
+	"github.com/mishushakov/libkrun-go/krun"
 )
 
 func main() {
