@@ -137,12 +137,33 @@ On Linux, skip the `codesign` step.
 
 Boots a microVM from a disk image with a custom kernel and optional virtio-fs shared directory.
 
-This example requires the `krun_blk` build tag since it uses disk images:
+This example requires the `krun_blk` build tag since it uses disk images.
+
+#### Creating a root disk image
+
+Use the included helper script to create an ext4 image from a Docker image (Linux only — requires loop mounting):
+
+```bash
+./mkrootext4fs.sh alpine ./rootfs.ext4
+./mkrootext4fs.sh ubuntu:22.04 ./rootfs.ext4 2048  # 2 GiB
+```
+
+Or create one manually:
+
+```bash
+dd if=/dev/zero of=rootfs.ext4 bs=1M count=1024
+mkfs.ext4 rootfs.ext4
+sudo mount -o loop rootfs.ext4 /mnt
+sudo debootstrap --variant=minbase bookworm /mnt
+sudo umount /mnt
+```
+
+#### Building and running
 
 ```bash
 cd examples/vm-with-disk
 go build -tags krun_blk -o vm-with-disk .
-codesign --entitlements entitlements.plist --force -s - vm-with-disk
+codesign --entitlements entitlements.plist --force -s - vm-with-disk  # macOS only
 ./vm-with-disk \
   -kernel /path/to/vmlinux \
   -disk /path/to/rootfs.ext4
@@ -175,19 +196,6 @@ Inside the guest, mount the shared directory:
 
 ```bash
 mount -t virtiofs shared /mnt
-```
-
-#### Creating a disk image
-
-```bash
-# Create a 1GB raw disk image with ext4
-dd if=/dev/zero of=rootfs.img bs=1M count=1024
-mkfs.ext4 rootfs.img
-
-# Mount and populate it
-sudo mount -o loop rootfs.img /mnt
-sudo debootstrap --variant=minbase bookworm /mnt
-sudo umount /mnt
 ```
 
 ## Troubleshooting
