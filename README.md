@@ -65,6 +65,22 @@ func main() {
 }
 ```
 
+## Build Tags
+
+Some libkrun features are optional and gated behind Go build tags. Without the corresponding tag, calls to those functions return `syscall.ENOSYS`.
+
+| Tag | Feature |
+|-----|---------|
+| `krun_blk` | Block device / disk support (`AddDisk`, `AddDisk2`, `AddDisk3`, `SetRootDiskRemount`) |
+| `krun_net` | Network backends (`AddNetUnixStream`, `AddNetUnixGram`, `AddNetTap`, `SetNetMac`) |
+| `krun_tee` | TEE configuration (`SetTEEConfigFile`) |
+
+Build with tags:
+
+```bash
+go build -tags "krun_blk,krun_net" ./...
+```
+
 ## API Overview
 
 The typical workflow is:
@@ -79,25 +95,119 @@ The typical workflow is:
 |----------|-------------|
 | `CreateContext()` | Create a new VM configuration context |
 | `SetLogLevel(level)` | Set library log verbosity |
-| `InitLog(...)` | Initialize logging with full control |
+| `InitLog(targetFD, level, style, options)` | Initialize logging with full control |
 | `HasFeature(feature)` | Check if a feature was enabled at build time |
 | `GetMaxVCPUs()` | Query max vCPUs supported by the hypervisor |
 | `CheckNestedVirt()` | Check nested virtualization support (macOS) |
 
 ### Context methods
 
-| Category | Methods |
-|----------|---------|
-| VM config | `SetVMConfig`, `SetRoot`, `SetNestedVirt`, `SetMappedVolumes` |
-| Execution | `SetExec`, `SetWorkdir`, `SetEnv`, `SetRlimits` |
-| Disks | `AddDisk`, `AddDisk2`, `AddDisk3`, `SetRootDiskRemount` |
-| Filesystem | `AddVirtioFS` |
-| Network | `SetNetUnix`, `SetNetGram`, `SetNetTap`, `SetNetMAC`, `AddPortMap` |
-| GPU | `SetGPUOptions`, `SetGPUOptions2`, `SetDisplayOptions`, `SetSoundOptions` |
-| Console | `AddVirtioConsole`, `AddVirtioConsoleDefault`, `AddSerialConsole` |
-| Vsock | `AddVsockPort`, `SetTSI`, `AddTSIPortMap` |
-| Kernel | `SetFirmware`, `SetKernel` |
-| Lifecycle | `StartEnter`, `Free` |
+#### VM configuration
+
+| Method | Description |
+|--------|-------------|
+| `SetVMConfig(numVCPUs, ramMiB)` | Set vCPU count and RAM |
+| `SetRoot(rootPath)` | Set root filesystem path |
+| `SetNestedVirt(enabled)` | Enable/disable nested virtualization (macOS) |
+| `SplitIRQChip(enable)` | Split IRQCHIP between host and guest |
+| `SetUID(uid)` | Set user ID before VM startup |
+| `SetGID(gid)` | Set group ID before VM startup |
+| `SetSMBIOSOEMStrings(oemStrings)` | Set SMBIOS OEM Strings |
+| `GetShutdownEventFD()` | Get file descriptor for shutdown signaling (libkrun-efi) |
+
+#### Execution
+
+| Method | Description |
+|--------|-------------|
+| `SetExec(execPath, argv, envp)` | Set executable, args, and environment |
+| `SetWorkdir(workdirPath)` | Set working directory for the executable |
+| `SetEnv(envp)` | Set environment variables |
+| `SetRlimits(rlimits)` | Set guest resource limits |
+
+#### Disks (requires `krun_blk` tag)
+
+| Method | Description |
+|--------|-------------|
+| `AddDisk(blockID, diskPath, readOnly)` | Add a raw disk image |
+| `AddDisk2(blockID, diskPath, format, readOnly)` | Add a disk with explicit format |
+| `AddDisk3(blockID, diskPath, format, readOnly, directIO, syncMode)` | Add a disk with full options |
+| `SetRootDiskRemount(device, fstype, options)` | Mount a block device as root filesystem |
+
+#### Filesystem
+
+| Method | Description |
+|--------|-------------|
+| `AddVirtioFS(tag, path)` | Add a virtio-fs shared directory |
+| `AddVirtioFS2(tag, path, shmSize)` | Add a virtio-fs with custom DAX window size |
+
+#### Network
+
+| Method | Description | Tag |
+|--------|-------------|-----|
+| `SetPortMap(portMap)` | Configure host-to-guest TCP port mappings | — |
+| `AddNetUnixStream(path, fd, mac, features, flags)` | Add net device via unix stream (e.g., passt) | `krun_net` |
+| `AddNetUnixGram(path, fd, mac, features, flags)` | Add net device via unix dgram (e.g., gvproxy) | `krun_net` |
+| `AddNetTap(tapName, mac, features, flags)` | Add net device via TAP | `krun_net` |
+| `SetNetMac(mac)` | Set MAC address for passt backend | `krun_net` |
+
+#### GPU, display, input, and sound
+
+| Method | Description |
+|--------|-------------|
+| `SetGPUOptions(virglFlags)` | Enable and configure virtio-gpu |
+| `SetGPUOptions2(virglFlags, shmSize)` | Configure virtio-gpu with custom vRAM size |
+| `AddDisplay(width, height)` | Add a display output (returns display ID) |
+| `DisplaySetEDID(displayID, edidBlob)` | Set custom EDID for a display |
+| `DisplaySetDPI(displayID, dpi)` | Set display DPI |
+| `DisplaySetPhysicalSize(displayID, widthMM, heightMM)` | Set physical display dimensions |
+| `DisplaySetRefreshRate(displayID, refreshRate)` | Set display refresh rate |
+| `SetDisplayBackend(backend, size)` | Set display backend |
+| `AddInputDeviceFD(inputFD)` | Passthrough a host input device |
+| `AddInputDevice(configBackend, configSize, eventsBackend, eventsSize)` | Add input device with custom backends |
+| `SetSndDevice(enable)` | Enable/disable virtio-snd |
+
+#### Console and serial
+
+| Method | Description |
+|--------|-------------|
+| `SetConsoleOutput(filepath)` | Redirect implicit console output to a file |
+| `DisableImplicitConsole()` | Disable the implicit console device |
+| `SetKernelConsole(consoleID)` | Set kernel `console=` parameter |
+| `AddVirtioConsoleDefault(inputFD, outputFD, errFD)` | Add virtio-console with automatic detection |
+| `AddVirtioConsoleMultiport()` | Create multi-port virtio-console (returns ID) |
+| `AddConsolePortTTY(consoleID, name, ttyFD)` | Add TTY port to multi-port console |
+| `AddConsolePortInOut(consoleID, name, inputFD, outputFD)` | Add generic I/O port to multi-port console |
+| `AddSerialConsoleDefault(inputFD, outputFD)` | Add legacy serial device |
+
+#### Vsock
+
+| Method | Description |
+|--------|-------------|
+| `AddVsockPort(port, filepath)` | Map vsock port to a host UNIX socket |
+| `AddVsockPort2(port, filepath, listen)` | Map vsock port with listen mode option |
+| `AddVsock(tsiFeatures)` | Add vsock device with TSI features |
+| `DisableImplicitVsock()` | Disable the default vsock device |
+
+#### Kernel and firmware
+
+| Method | Description |
+|--------|-------------|
+| `SetFirmware(firmwarePath)` | Load firmware into the microVM |
+| `SetKernel(kernelPath, format, initramfs, cmdline)` | Load kernel with initramfs and command line |
+
+#### TEE (requires `krun_tee` tag)
+
+| Method | Description |
+|--------|-------------|
+| `SetTEEConfigFile(filepath)` | Set TEE configuration file (libkrun-sev) |
+
+#### Lifecycle
+
+| Method | Description |
+|--------|-------------|
+| `ID()` | Get the underlying context ID |
+| `StartEnter()` | Start and enter the microVM (does not return on success) |
+| `Free()` | Release the configuration context |
 
 ### Error handling
 

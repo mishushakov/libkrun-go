@@ -43,12 +43,12 @@ export LD_LIBRARY_PATH=/path/to/lib:$LD_LIBRARY_PATH
 On macOS, any binary that uses Hypervisor.framework must be signed with the `com.apple.security.hypervisor` entitlement. This means **`go run` will not work** for examples that start a VM — you must build, sign, then run:
 
 ```bash
-go build -o basic .
-codesign --entitlements entitlements.plist --force -s - basic
-./basic /path/to/rootfs /bin/uname -a
+go build -o myexample .
+codesign --entitlements entitlements.plist --force -s - myexample
+./myexample
 ```
 
-An `entitlements.plist` is provided in the `basic/` example directory. You can reuse it for other examples.
+Each example that starts a VM includes its own `entitlements.plist`.
 
 ## Build tags
 
@@ -109,39 +109,40 @@ Compile-time features:
 
 Runs a command inside a microVM using a host directory as the root filesystem.
 
+A pre-built Debian rootfs is included at `rootfs/` for quick testing. To create your own from a Docker image, use the included helper script:
+
+```bash
+./mkrootfs.sh alpine ./my-rootfs
+./mkrootfs.sh ubuntu:22.04 ./my-rootfs
+```
+
+Or create one manually with `debootstrap`:
+
+```bash
+sudo debootstrap --variant=minbase bookworm ./my-rootfs
+```
+
+Build, sign, and run (macOS):
+
 ```bash
 cd examples/basic
 go build -o basic .
 codesign --entitlements entitlements.plist --force -s - basic
-./basic /path/to/rootfs /bin/uname -a
+./basic ../rootfs /bin/uname -a
 ```
 
-The rootfs directory should contain a minimal Linux filesystem (with `/bin`, `/lib`, etc.). The easiest way is to use the included helper script to extract one from a Docker image:
-
-```bash
-# Create a rootfs from an Alpine image
-../mkrootfs.sh alpine ./rootfs
-
-# Or from Ubuntu
-../mkrootfs.sh ubuntu:22.04 ./rootfs
-```
-
-You can also create one manually with `debootstrap`:
-
-```bash
-sudo debootstrap --variant=minbase bookworm ./rootfs
-```
+On Linux, skip the `codesign` step.
 
 ### vm-with-disk — Boot from a disk image
 
 Boots a microVM from a disk image with a custom kernel and optional virtio-fs shared directory.
 
-This example requires the `krun_blk` build tag since it uses disk images. On macOS, you must build and sign the binary (see [macOS: Hypervisor entitlement](#macos-hypervisor-entitlement)):
+This example requires the `krun_blk` build tag since it uses disk images:
 
 ```bash
 cd examples/vm-with-disk
 go build -tags krun_blk -o vm-with-disk .
-codesign --entitlements ../basic/entitlements.plist --force -s - vm-with-disk
+codesign --entitlements entitlements.plist --force -s - vm-with-disk
 ./vm-with-disk \
   -kernel /path/to/vmlinux \
   -disk /path/to/rootfs.ext4

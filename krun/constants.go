@@ -66,16 +66,16 @@ const (
 type Feature uint64
 
 const (
-	FeatureNet              Feature = 0
-	FeatureBLK              Feature = 1
-	FeatureGPU              Feature = 2
-	FeatureSND              Feature = 3
-	FeatureInput            Feature = 4
-	FeatureEFI              Feature = 5
-	FeatureTEE              Feature = 6
-	FeatureAMDSEV           Feature = 7
-	FeatureIntelTDX         Feature = 8
-	FeatureAWSNitro         Feature = 9
+	FeatureNet               Feature = 0
+	FeatureBLK               Feature = 1
+	FeatureGPU               Feature = 2
+	FeatureSND               Feature = 3
+	FeatureInput             Feature = 4
+	FeatureEFI               Feature = 5
+	FeatureTEE               Feature = 6
+	FeatureAMDSEV            Feature = 7
+	FeatureIntelTDX          Feature = 8
+	FeatureAWSNitro          Feature = 9
 	FeatureVirglResourceMap2 Feature = 10
 )
 
@@ -112,17 +112,17 @@ const (
 
 // Virglrenderer flags for GPU configuration.
 const (
-	VirglUseEGL           uint32 = 1 << 0
-	VirglThreadSync       uint32 = 1 << 1
-	VirglUseGLX           uint32 = 1 << 2
-	VirglUseSurfaceless   uint32 = 1 << 3
-	VirglUseGLES          uint32 = 1 << 4
-	VirglUseExternalBlob  uint32 = 1 << 5
-	VirglVenus            uint32 = 1 << 6
-	VirglNoVirgl          uint32 = 1 << 7
-	VirglUseAsyncFenceCB  uint32 = 1 << 8
-	VirglRenderServer     uint32 = 1 << 9
-	VirglDRM              uint32 = 1 << 10
+	VirglUseEGL          uint32 = 1 << 0
+	VirglThreadSync      uint32 = 1 << 1
+	VirglUseGLX          uint32 = 1 << 2
+	VirglUseSurfaceless  uint32 = 1 << 3
+	VirglUseGLES         uint32 = 1 << 4
+	VirglUseExternalBlob uint32 = 1 << 5
+	VirglVenus           uint32 = 1 << 6
+	VirglNoVirgl         uint32 = 1 << 7
+	VirglUseAsyncFenceCB uint32 = 1 << 8
+	VirglRenderServer    uint32 = 1 << 9
+	VirglDRM             uint32 = 1 << 10
 )
 
 // MaxDisplays is the maximum number of displays (same as VIRTIO_GPU_MAX_SCANOUTS).
