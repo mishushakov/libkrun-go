@@ -21,6 +21,9 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Install libclang
+        run: sudo apt-get install -y libclang-dev
+
       - name: Build and install libkrun
         run: |
           cd libkrun
