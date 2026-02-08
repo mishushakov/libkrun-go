@@ -26,14 +26,14 @@ func TestSetKernel(t *testing.T) {
 	}
 
 	t.Run("minimal", func(t *testing.T) {
-		err := ctx.SetKernel(kernelPath, KernelFormatRaw, "", "")
+		err := ctx.SetKernel(KernelConfig{Path: kernelPath})
 		if err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	t.Run("with_cmdline", func(t *testing.T) {
-		err := ctx.SetKernel(kernelPath, KernelFormatRaw, "", "console=ttyS0")
+		err := ctx.SetKernel(KernelConfig{Path: kernelPath, Cmdline: "console=ttyS0"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -44,7 +44,12 @@ func TestSetKernel(t *testing.T) {
 		if err := os.WriteFile(initrdPath, []byte("fake initramfs"), 0644); err != nil {
 			t.Fatal(err)
 		}
-		err := ctx.SetKernel(kernelPath, KernelFormatELF, initrdPath, "root=/dev/vda")
+		err := ctx.SetKernel(KernelConfig{
+			Path:      kernelPath,
+			Format:    KernelFormatELF,
+			Initramfs: initrdPath,
+			Cmdline:   "root=/dev/vda",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}

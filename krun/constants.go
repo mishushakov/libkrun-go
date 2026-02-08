@@ -127,3 +127,89 @@ const (
 
 // MaxDisplays is the maximum number of displays (same as VIRTIO_GPU_MAX_SCANOUTS).
 const MaxDisplays = 16
+
+// DiskConfig configures a disk image to attach to the microVM.
+//
+// Security note: Non-raw images can reference other files. Only use non-raw formats
+// with fully trusted images. See the libkrun documentation for details.
+type DiskConfig struct {
+	BlockID  string
+	Path     string
+	Format   DiskFormat // 0 = DiskFormatRaw
+	ReadOnly bool
+	DirectIO bool
+	SyncMode SyncMode // 0 = SyncNone
+}
+
+// VMConfig configures the basic VM parameters.
+type VMConfig struct {
+	NumVCPUs uint8
+	RAMMiB   uint32
+}
+
+// ExecConfig configures the executable to run inside the microVM.
+type ExecConfig struct {
+	Path string
+	Args []string
+	Env  []string // nil = auto-generate from host
+}
+
+// RootDiskRemountConfig configures a block device as the root filesystem.
+type RootDiskRemountConfig struct {
+	Device  string
+	FSType  string // "" = NULL
+	Options string // "" = NULL
+}
+
+// VirtioConsoleConfig configures a virtio-console device with automatic detection.
+type VirtioConsoleConfig struct {
+	InputFD  int
+	OutputFD int
+	ErrFD    int
+}
+
+// SerialConsoleConfig configures a legacy serial device.
+type SerialConsoleConfig struct {
+	InputFD  int
+	OutputFD int
+}
+
+// ConsolePortTTYConfig configures a TTY port on a multi-port virtio-console device.
+type ConsolePortTTYConfig struct {
+	ConsoleID uint32
+	Name      string
+	TTYFD     int
+}
+
+// ConsolePortInOutConfig configures a generic I/O port on a multi-port virtio-console device.
+type ConsolePortInOutConfig struct {
+	ConsoleID uint32
+	Name      string
+	InputFD   int
+	OutputFD  int
+}
+
+// DisplayConfig configures a display output for the VM.
+type DisplayConfig struct {
+	Width  uint32
+	Height uint32
+}
+
+// NetUnixConfig configures a UNIX socket-based virtio-net device.
+// Path and FD are mutually exclusive: pass "" for Path when using FD,
+// or -1 for FD when using Path.
+type NetUnixConfig struct {
+	Path     string
+	FD       int
+	MAC      [6]byte
+	Features uint32
+	Flags    uint32
+}
+
+// NetTapConfig configures a TAP-based virtio-net device.
+type NetTapConfig struct {
+	TapName  string
+	MAC      [6]byte
+	Features uint32
+	Flags    uint32
+}

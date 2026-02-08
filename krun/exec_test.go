@@ -13,21 +13,32 @@ func TestSetExec(t *testing.T) {
 	ctx := newTestContext(t)
 
 	t.Run("with_explicit_env", func(t *testing.T) {
-		err := ctx.SetExec("/bin/sh", []string{"sh", "-c", "echo hello"}, []string{"PATH=/usr/bin"})
+		err := ctx.SetExec(ExecConfig{
+			Path: "/bin/sh",
+			Args: []string{"sh", "-c", "echo hello"},
+			Env:  []string{"PATH=/usr/bin"},
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	t.Run("with_nil_env", func(t *testing.T) {
-		err := ctx.SetExec("/bin/sh", []string{"sh"}, nil)
+		err := ctx.SetExec(ExecConfig{
+			Path: "/bin/sh",
+			Args: []string{"sh"},
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	t.Run("with_empty_env", func(t *testing.T) {
-		err := ctx.SetExec("/bin/sh", []string{"sh"}, []string{})
+		err := ctx.SetExec(ExecConfig{
+			Path: "/bin/sh",
+			Args: []string{"sh"},
+			Env:  []string{},
+		})
 		if err != nil {
 			t.Fatal(err)
 		}

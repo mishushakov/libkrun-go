@@ -7,23 +7,19 @@ package krun
 import "C"
 import "unsafe"
 
-// AddVsockPort maps a vsock port to a host UNIX socket path.
-func (c *Context) AddVsockPort(port uint32, filepath string) error {
-	cPath := C.CString(filepath)
-	defer C.free(unsafe.Pointer(cPath))
-	return checkRet(
-		C.krun_add_vsock_port(C.uint32_t(c.id), C.uint32_t(port), cPath),
-		"krun_add_vsock_port",
-	)
+// VsockPortConfig configures a vsock port mapping.
+type VsockPortConfig struct {
+	Port   uint32
+	Path   string
+	Listen bool // false = guest initiates connections
 }
 
-// AddVsockPort2 maps a vsock port to a host UNIX socket path with a listen mode option.
-// If listen is true, the guest expects connections to be initiated from the host side.
-func (c *Context) AddVsockPort2(port uint32, filepath string, listen bool) error {
-	cPath := C.CString(filepath)
+// AddVsockPort maps a vsock port to a host UNIX socket path.
+func (c *Context) AddVsockPort(cfg VsockPortConfig) error {
+	cPath := C.CString(cfg.Path)
 	defer C.free(unsafe.Pointer(cPath))
 	return checkRet(
-		C.krun_add_vsock_port2(C.uint32_t(c.id), C.uint32_t(port), cPath, C.bool(listen)),
+		C.krun_add_vsock_port2(C.uint32_t(c.id), C.uint32_t(cfg.Port), cPath, C.bool(cfg.Listen)),
 		"krun_add_vsock_port2",
 	)
 }

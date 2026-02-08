@@ -7,6 +7,14 @@ package krun
 import "C"
 import "unsafe"
 
+// KernelConfig configures the kernel to be loaded in the microVM.
+type KernelConfig struct {
+	Path      string
+	Format    KernelFormat // 0 = KernelFormatRaw
+	Initramfs string       // "" = none
+	Cmdline   string       // "" = none
+}
+
 // SetFirmware sets the path to the firmware to be loaded into the microVM.
 func (c *Context) SetFirmware(firmwarePath string) error {
 	cPath := C.CString(firmwarePath)
@@ -15,29 +23,25 @@ func (c *Context) SetFirmware(firmwarePath string) error {
 }
 
 // SetKernel configures the kernel to be loaded in the microVM.
-// kernelPath is the path to the kernel image.
-// format specifies the kernel image format.
-// initramfs is the path to the initramfs (pass "" for none).
-// cmdline is the kernel command line (pass "" for none).
-func (c *Context) SetKernel(kernelPath string, format KernelFormat, initramfs, cmdline string) error {
-	cKernel := C.CString(kernelPath)
+func (c *Context) SetKernel(cfg KernelConfig) error {
+	cKernel := C.CString(cfg.Path)
 	defer C.free(unsafe.Pointer(cKernel))
 
 	var cInitramfs *C.char
-	if initramfs != "" {
-		cInitramfs = C.CString(initramfs)
+	if cfg.Initramfs != "" {
+		cInitramfs = C.CString(cfg.Initramfs)
 		defer C.free(unsafe.Pointer(cInitramfs))
 	}
 
 	var cCmdline *C.char
-	if cmdline != "" {
-		cCmdline = C.CString(cmdline)
+	if cfg.Cmdline != "" {
+		cCmdline = C.CString(cfg.Cmdline)
 		defer C.free(unsafe.Pointer(cCmdline))
 	}
 
 	return checkRet(
 		C.krun_set_kernel(
-			C.uint32_t(c.id), cKernel, C.uint32_t(format), cInitramfs, cCmdline,
+			C.uint32_t(c.id), cKernel, C.uint32_t(cfg.Format), cInitramfs, cCmdline,
 		),
 		"krun_set_kernel",
 	)

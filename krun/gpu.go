@@ -7,20 +7,16 @@ package krun
 import "C"
 import "unsafe"
 
-// SetGPUOptions enables and configures a virtio-gpu device.
-// virglFlags is a bitmask of Virgl* flags.
-func (c *Context) SetGPUOptions(virglFlags uint32) error {
-	return checkRet(
-		C.krun_set_gpu_options(C.uint32_t(c.id), C.uint32_t(virglFlags)),
-		"krun_set_gpu_options",
-	)
+// GPUConfig configures a virtio-gpu device.
+type GPUConfig struct {
+	VirglFlags uint32
+	ShmSize    uint64 // 0 = libkrun default
 }
 
-// SetGPUOptions2 enables and configures a virtio-gpu device with a custom
-// host SHM window size (acting as vRAM in the guest).
-func (c *Context) SetGPUOptions2(virglFlags uint32, shmSize uint64) error {
+// SetGPUOptions enables and configures a virtio-gpu device.
+func (c *Context) SetGPUOptions(cfg GPUConfig) error {
 	return checkRet(
-		C.krun_set_gpu_options2(C.uint32_t(c.id), C.uint32_t(virglFlags), C.uint64_t(shmSize)),
+		C.krun_set_gpu_options2(C.uint32_t(c.id), C.uint32_t(cfg.VirglFlags), C.uint64_t(cfg.ShmSize)),
 		"krun_set_gpu_options2",
 	)
 }
@@ -28,8 +24,8 @@ func (c *Context) SetGPUOptions2(virglFlags uint32, shmSize uint64) error {
 // AddDisplay configures a display output for the VM.
 // A display backend must also be set via [Context.SetDisplayBackend].
 // Returns the display ID (0 to [MaxDisplays]-1) on success.
-func (c *Context) AddDisplay(width, height uint32) (uint32, error) {
-	ret := C.krun_add_display(C.uint32_t(c.id), C.uint32_t(width), C.uint32_t(height))
+func (c *Context) AddDisplay(cfg DisplayConfig) (uint32, error) {
+	ret := C.krun_add_display(C.uint32_t(c.id), C.uint32_t(cfg.Width), C.uint32_t(cfg.Height))
 	if ret < 0 {
 		return 0, retError(ret, "krun_add_display")
 	}

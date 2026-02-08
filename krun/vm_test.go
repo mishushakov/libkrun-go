@@ -8,7 +8,7 @@ import (
 
 func TestSetVMConfig(t *testing.T) {
 	ctx := newTestContext(t)
-	if err := ctx.SetVMConfig(2, 512); err != nil {
+	if err := ctx.SetVMConfig(VMConfig{NumVCPUs: 2, RAMMiB: 512}); err != nil {
 		t.Fatal(err)
 	}
 }

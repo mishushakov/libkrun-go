@@ -33,7 +33,7 @@ func e2eHelper() {
 		os.Exit(1)
 	}
 
-	if err := ctx.SetVMConfig(1, 256); err != nil {
+	if err := ctx.SetVMConfig(VMConfig{NumVCPUs: 1, RAMMiB: 256}); err != nil {
 		fmt.Fprintf(os.Stderr, "e2eHelper: SetVMConfig: %v\n", err)
 		os.Exit(1)
 	}
@@ -43,7 +43,7 @@ func e2eHelper() {
 		os.Exit(1)
 	}
 
-	if err := ctx.SetExec(execPath, []string{execPath}, []string{}); err != nil {
+	if err := ctx.SetExec(ExecConfig{Path: execPath, Args: []string{execPath}, Env: []string{}}); err != nil {
 		fmt.Fprintf(os.Stderr, "e2eHelper: SetExec: %v\n", err)
 		os.Exit(1)
 	}

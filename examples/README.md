@@ -56,7 +56,7 @@ Some libkrun features are optional and may not be present in every build. The Go
 
 | Build tag | libkrun feature | Functions |
 |-----------|----------------|-----------|
-| `krun_blk` | `BLK` | `AddDisk`, `AddDisk2`, `AddDisk3`, `SetRootDiskRemount` |
+| `krun_blk` | `BLK` | `AddDisk`, `SetRootDiskRemount` |
 | `krun_net` | `NET` | `AddNetUnixStream`, `AddNetUnixGram`, `AddNetTap`, `SetNetMac` |
 | `krun_tee` | `TEE` | `SetTEEConfigFile` |
 

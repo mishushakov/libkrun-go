@@ -42,7 +42,7 @@ func run(rootfs, execPath string, argv []string) error {
 	}
 
 	// Configure 2 vCPUs and 512 MiB of RAM.
-	if err := ctx.SetVMConfig(2, 512); err != nil {
+	if err := ctx.SetVMConfig(krun.VMConfig{NumVCPUs: 2, RAMMiB: 512}); err != nil {
 		return fmt.Errorf("set vm config: %w", err)
 	}
 
@@ -59,7 +59,7 @@ func run(rootfs, execPath string, argv []string) error {
 		"HOME=/root",
 		"TERM=xterm-256color",
 	}
-	if err := ctx.SetExec(execPath, argv, env); err != nil {
+	if err := ctx.SetExec(krun.ExecConfig{Path: execPath, Args: argv, Env: env}); err != nil {
 		return fmt.Errorf("set exec: %w", err)
 	}
 

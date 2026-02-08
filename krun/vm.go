@@ -8,9 +8,9 @@ import "C"
 import "unsafe"
 
 // SetVMConfig sets the basic configuration parameters for the microVM.
-func (c *Context) SetVMConfig(numVCPUs uint8, ramMiB uint32) error {
+func (c *Context) SetVMConfig(cfg VMConfig) error {
 	return checkRet(
-		C.krun_set_vm_config(C.uint32_t(c.id), C.uint8_t(numVCPUs), C.uint32_t(ramMiB)),
+		C.krun_set_vm_config(C.uint32_t(c.id), C.uint8_t(cfg.NumVCPUs), C.uint32_t(cfg.RAMMiB)),
 		"krun_set_vm_config",
 	)
 }

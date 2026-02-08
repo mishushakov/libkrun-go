@@ -4,14 +4,14 @@ import "testing"
 
 func TestSetGPUOptions(t *testing.T) {
 	ctx := newTestContext(t)
-	if err := ctx.SetGPUOptions(VirglUseSurfaceless | VirglUseEGL); err != nil {
+	if err := ctx.SetGPUOptions(GPUConfig{VirglFlags: VirglUseSurfaceless | VirglUseEGL}); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestSetGPUOptions2(t *testing.T) {
+func TestSetGPUOptions_WithShmSize(t *testing.T) {
 	ctx := newTestContext(t)
-	if err := ctx.SetGPUOptions2(VirglUseSurfaceless, 256*1024*1024); err != nil {
+	if err := ctx.SetGPUOptions(GPUConfig{VirglFlags: VirglUseSurfaceless, ShmSize: 256 * 1024 * 1024}); err != nil {
 		t.Fatal(err)
 	}
 }

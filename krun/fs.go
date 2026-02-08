@@ -7,31 +7,21 @@ package krun
 import "C"
 import "unsafe"
 
-// AddVirtioFS adds a virtio-fs device pointing to a host directory.
-// tag identifies the filesystem in the guest.
-// path is the full path to the host directory to expose.
-func (c *Context) AddVirtioFS(tag, path string) error {
-	cTag := C.CString(tag)
-	defer C.free(unsafe.Pointer(cTag))
-	cPath := C.CString(path)
-	defer C.free(unsafe.Pointer(cPath))
-	return checkRet(
-		C.krun_add_virtiofs(C.uint32_t(c.id), cTag, cPath),
-		"krun_add_virtiofs",
-	)
+// VirtioFSConfig configures a virtio-fs device.
+type VirtioFSConfig struct {
+	Tag     string
+	Path    string
+	ShmSize uint64 // 0 = libkrun default
 }
 
-// AddVirtioFS2 adds a virtio-fs device with a custom DAX window size.
-// tag identifies the filesystem in the guest.
-// path is the full path to the host directory to expose.
-// shmSize is the DAX SHM window size in bytes.
-func (c *Context) AddVirtioFS2(tag, path string, shmSize uint64) error {
-	cTag := C.CString(tag)
+// AddVirtioFS adds a virtio-fs device pointing to a host directory.
+func (c *Context) AddVirtioFS(cfg VirtioFSConfig) error {
+	cTag := C.CString(cfg.Tag)
 	defer C.free(unsafe.Pointer(cTag))
-	cPath := C.CString(path)
+	cPath := C.CString(cfg.Path)
 	defer C.free(unsafe.Pointer(cPath))
 	return checkRet(
-		C.krun_add_virtiofs2(C.uint32_t(c.id), cTag, cPath, C.uint64_t(shmSize)),
+		C.krun_add_virtiofs2(C.uint32_t(c.id), cTag, cPath, C.uint64_t(cfg.ShmSize)),
 		"krun_add_virtiofs2",
 	)
 }

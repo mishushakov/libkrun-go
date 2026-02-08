@@ -10,7 +10,10 @@ import (
 
 func TestAddDisk_Stub(t *testing.T) {
 	ctx := newTestContext(t)
-	err := ctx.AddDisk("vda", "/tmp/disk.img", false)
+	err := ctx.AddDisk(DiskConfig{
+		BlockID: "vda",
+		Path:    "/tmp/disk.img",
+	})
 	if err == nil {
 		return // built with krun_blk tag
 	}
@@ -19,20 +22,16 @@ func TestAddDisk_Stub(t *testing.T) {
 	}
 }
 
-func TestAddDisk2_Stub(t *testing.T) {
+func TestAddDisk_WithOptions(t *testing.T) {
 	ctx := newTestContext(t)
-	err := ctx.AddDisk2("vda", "/tmp/disk.img", DiskFormatQcow2, false)
-	if err == nil {
-		return
-	}
-	if !errors.Is(err, syscall.ENOSYS) {
-		t.Fatalf("expected ENOSYS, got %v", err)
-	}
-}
-
-func TestAddDisk3_Stub(t *testing.T) {
-	ctx := newTestContext(t)
-	err := ctx.AddDisk3("vda", "/tmp/disk.img", DiskFormatRaw, true, false, SyncRelaxed)
+	err := ctx.AddDisk(DiskConfig{
+		BlockID:  "vda",
+		Path:     "/tmp/disk.img",
+		Format:   DiskFormatQcow2,
+		ReadOnly: true,
+		DirectIO: false,
+		SyncMode: SyncRelaxed,
+	})
 	if err == nil {
 		return
 	}
@@ -43,7 +42,7 @@ func TestAddDisk3_Stub(t *testing.T) {
 
 func TestSetRootDiskRemount_Stub(t *testing.T) {
 	ctx := newTestContext(t)
-	err := ctx.SetRootDiskRemount("/dev/vda", "ext4", "rw")
+	err := ctx.SetRootDiskRemount(RootDiskRemountConfig{Device: "/dev/vda", FSType: "ext4", Options: "rw"})
 	if err == nil {
 		return
 	}

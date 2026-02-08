@@ -49,13 +49,16 @@ func main() {
 	}
 
 	// Configure 2 vCPUs and 512 MiB of RAM.
-	ctx.SetVMConfig(2, 512)
+	ctx.SetVMConfig(krun.VMConfig{NumVCPUs: 2, RAMMiB: 512})
 
 	// Use a host directory as the root filesystem.
 	ctx.SetRoot("/path/to/rootfs")
 
 	// Set the command to run inside the VM.
-	ctx.SetExec("/bin/uname", []string{"/bin/uname", "-a"}, nil)
+	ctx.SetExec(krun.ExecConfig{
+		Path: "/bin/uname",
+		Args: []string{"/bin/uname", "-a"},
+	})
 
 	// Start the VM. Does not return on success.
 	if err := ctx.StartEnter(); err != nil {
@@ -71,7 +74,7 @@ Some libkrun features are optional and gated behind Go build tags. Without the c
 
 | Tag | Feature |
 |-----|---------|
-| `krun_blk` | Block device / disk support (`AddDisk`, `AddDisk2`, `AddDisk3`, `SetRootDiskRemount`) |
+| `krun_blk` | Block device / disk support (`AddDisk`, `SetRootDiskRemount`) |
 | `krun_net` | Network backends (`AddNetUnixStream`, `AddNetUnixGram`, `AddNetTap`, `SetNetMac`) |
 | `krun_tee` | TEE configuration (`SetTEEConfigFile`) |
 
@@ -106,7 +109,7 @@ The typical workflow is:
 
 | Method | Description |
 |--------|-------------|
-| `SetVMConfig(numVCPUs, ramMiB)` | Set vCPU count and RAM |
+| `SetVMConfig(VMConfig)` | Set vCPU count and RAM |
 | `SetRoot(rootPath)` | Set root filesystem path |
 | `SetNestedVirt(enabled)` | Enable/disable nested virtualization (macOS) |
 | `SplitIRQChip(enable)` | Split IRQCHIP between host and guest |
@@ -119,7 +122,7 @@ The typical workflow is:
 
 | Method | Description |
 |--------|-------------|
-| `SetExec(execPath, argv, envp)` | Set executable, args, and environment |
+| `SetExec(ExecConfig)` | Set executable, args, and environment |
 | `SetWorkdir(workdirPath)` | Set working directory for the executable |
 | `SetEnv(envp)` | Set environment variables |
 | `SetRlimits(rlimits)` | Set guest resource limits |
@@ -128,35 +131,31 @@ The typical workflow is:
 
 | Method | Description |
 |--------|-------------|
-| `AddDisk(blockID, diskPath, readOnly)` | Add a raw disk image |
-| `AddDisk2(blockID, diskPath, format, readOnly)` | Add a disk with explicit format |
-| `AddDisk3(blockID, diskPath, format, readOnly, directIO, syncMode)` | Add a disk with full options |
-| `SetRootDiskRemount(device, fstype, options)` | Mount a block device as root filesystem |
+| `AddDisk(DiskConfig)` | Add a disk image with full options |
+| `SetRootDiskRemount(RootDiskRemountConfig)` | Mount a block device as root filesystem |
 
 #### Filesystem
 
 | Method | Description |
 |--------|-------------|
-| `AddVirtioFS(tag, path)` | Add a virtio-fs shared directory |
-| `AddVirtioFS2(tag, path, shmSize)` | Add a virtio-fs with custom DAX window size |
+| `AddVirtioFS(VirtioFSConfig)` | Add a virtio-fs shared directory |
 
 #### Network
 
 | Method | Description | Tag |
 |--------|-------------|-----|
 | `SetPortMap(portMap)` | Configure host-to-guest TCP port mappings | — |
-| `AddNetUnixStream(path, fd, mac, features, flags)` | Add net device via unix stream (e.g., passt) | `krun_net` |
-| `AddNetUnixGram(path, fd, mac, features, flags)` | Add net device via unix dgram (e.g., gvproxy) | `krun_net` |
-| `AddNetTap(tapName, mac, features, flags)` | Add net device via TAP | `krun_net` |
+| `AddNetUnixStream(NetUnixConfig)` | Add net device via unix stream (e.g., passt) | `krun_net` |
+| `AddNetUnixGram(NetUnixConfig)` | Add net device via unix dgram (e.g., gvproxy) | `krun_net` |
+| `AddNetTap(NetTapConfig)` | Add net device via TAP | `krun_net` |
 | `SetNetMac(mac)` | Set MAC address for passt backend | `krun_net` |
 
 #### GPU, display, input, and sound
 
 | Method | Description |
 |--------|-------------|
-| `SetGPUOptions(virglFlags)` | Enable and configure virtio-gpu |
-| `SetGPUOptions2(virglFlags, shmSize)` | Configure virtio-gpu with custom vRAM size |
-| `AddDisplay(width, height)` | Add a display output (returns display ID) |
+| `SetGPUOptions(GPUConfig)` | Enable and configure virtio-gpu |
+| `AddDisplay(DisplayConfig)` | Add a display output (returns display ID) |
 | `DisplaySetEDID(displayID, edidBlob)` | Set custom EDID for a display |
 | `DisplaySetDPI(displayID, dpi)` | Set display DPI |
 | `DisplaySetPhysicalSize(displayID, widthMM, heightMM)` | Set physical display dimensions |
@@ -173,18 +172,17 @@ The typical workflow is:
 | `SetConsoleOutput(filepath)` | Redirect implicit console output to a file |
 | `DisableImplicitConsole()` | Disable the implicit console device |
 | `SetKernelConsole(consoleID)` | Set kernel `console=` parameter |
-| `AddVirtioConsoleDefault(inputFD, outputFD, errFD)` | Add virtio-console with automatic detection |
+| `AddVirtioConsoleDefault(VirtioConsoleConfig)` | Add virtio-console with automatic detection |
 | `AddVirtioConsoleMultiport()` | Create multi-port virtio-console (returns ID) |
-| `AddConsolePortTTY(consoleID, name, ttyFD)` | Add TTY port to multi-port console |
-| `AddConsolePortInOut(consoleID, name, inputFD, outputFD)` | Add generic I/O port to multi-port console |
-| `AddSerialConsoleDefault(inputFD, outputFD)` | Add legacy serial device |
+| `AddConsolePortTTY(ConsolePortTTYConfig)` | Add TTY port to multi-port console |
+| `AddConsolePortInOut(ConsolePortInOutConfig)` | Add generic I/O port to multi-port console |
+| `AddSerialConsoleDefault(SerialConsoleConfig)` | Add legacy serial device |
 
 #### Vsock
 
 | Method | Description |
 |--------|-------------|
-| `AddVsockPort(port, filepath)` | Map vsock port to a host UNIX socket |
-| `AddVsockPort2(port, filepath, listen)` | Map vsock port with listen mode option |
+| `AddVsockPort(VsockPortConfig)` | Map vsock port to a host UNIX socket |
 | `AddVsock(tsiFeatures)` | Add vsock device with TSI features |
 | `DisableImplicitVsock()` | Disable the default vsock device |
 
@@ -193,7 +191,7 @@ The typical workflow is:
 | Method | Description |
 |--------|-------------|
 | `SetFirmware(firmwarePath)` | Load firmware into the microVM |
-| `SetKernel(kernelPath, format, initramfs, cmdline)` | Load kernel with initramfs and command line |
+| `SetKernel(KernelConfig)` | Load kernel with initramfs and command line |
 
 #### TEE (requires `krun_tee` tag)
 

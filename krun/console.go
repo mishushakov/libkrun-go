@@ -41,19 +41,19 @@ func (c *Context) SetKernelConsole(consoleID string) error {
 // AddVirtioConsoleDefault adds a virtio-console device with automatic detection.
 // If the file descriptors are TTYs, a single console port is created.
 // For non-TTY file descriptors, additional ports are created for stdin/stdout/stderr.
-func (c *Context) AddVirtioConsoleDefault(inputFD, outputFD, errFD int) error {
+func (c *Context) AddVirtioConsoleDefault(cfg VirtioConsoleConfig) error {
 	return checkRet(
 		C.krun_add_virtio_console_default(
-			C.uint32_t(c.id), C.int(inputFD), C.int(outputFD), C.int(errFD),
+			C.uint32_t(c.id), C.int(cfg.InputFD), C.int(cfg.OutputFD), C.int(cfg.ErrFD),
 		),
 		"krun_add_virtio_console_default",
 	)
 }
 
 // AddSerialConsoleDefault adds a legacy serial device.
-func (c *Context) AddSerialConsoleDefault(inputFD, outputFD int) error {
+func (c *Context) AddSerialConsoleDefault(cfg SerialConsoleConfig) error {
 	return checkRet(
-		C.krun_add_serial_console_default(C.uint32_t(c.id), C.int(inputFD), C.int(outputFD)),
+		C.krun_add_serial_console_default(C.uint32_t(c.id), C.int(cfg.InputFD), C.int(cfg.OutputFD)),
 		"krun_add_serial_console_default",
 	)
 }
@@ -71,13 +71,13 @@ func (c *Context) AddVirtioConsoleMultiport() (uint32, error) {
 
 // AddConsolePortTTY adds a TTY port to a multi-port virtio-console device.
 // The port is marked with VIRTIO_CONSOLE_CONSOLE_PORT, enabling window resize support.
-// name identifies the port in the guest (can be "").
-func (c *Context) AddConsolePortTTY(consoleID uint32, name string, ttyFD int) error {
-	cName := C.CString(name)
+// Name identifies the port in the guest (can be "").
+func (c *Context) AddConsolePortTTY(cfg ConsolePortTTYConfig) error {
+	cName := C.CString(cfg.Name)
 	defer C.free(unsafe.Pointer(cName))
 	return checkRet(
 		C.krun_add_console_port_tty(
-			C.uint32_t(c.id), C.uint32_t(consoleID), cName, C.int(ttyFD),
+			C.uint32_t(c.id), C.uint32_t(cfg.ConsoleID), cName, C.int(cfg.TTYFD),
 		),
 		"krun_add_console_port_tty",
 	)
@@ -85,14 +85,14 @@ func (c *Context) AddConsolePortTTY(consoleID uint32, name string, ttyFD int) er
 
 // AddConsolePortInOut adds a generic I/O port to a multi-port virtio-console device.
 // The port does NOT support console features like window resize.
-// name identifies the port in the guest (can be "").
-func (c *Context) AddConsolePortInOut(consoleID uint32, name string, inputFD, outputFD int) error {
-	cName := C.CString(name)
+// Name identifies the port in the guest (can be "").
+func (c *Context) AddConsolePortInOut(cfg ConsolePortInOutConfig) error {
+	cName := C.CString(cfg.Name)
 	defer C.free(unsafe.Pointer(cName))
 	return checkRet(
 		C.krun_add_console_port_inout(
-			C.uint32_t(c.id), C.uint32_t(consoleID), cName,
-			C.int(inputFD), C.int(outputFD),
+			C.uint32_t(c.id), C.uint32_t(cfg.ConsoleID), cName,
+			C.int(cfg.InputFD), C.int(cfg.OutputFD),
 		),
 		"krun_add_console_port_inout",
 	)

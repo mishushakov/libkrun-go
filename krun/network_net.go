@@ -11,23 +11,17 @@ import "unsafe"
 
 // AddNetUnixStream adds a virtio-net device connected to a unixstream-based
 // network proxy (e.g., passt or socket_vmnet).
-//
-// path and fd are mutually exclusive: pass "" for path when using fd,
-// or -1 for fd when using path.
-// mac is the 6-byte MAC address for the interface.
-// features is a bitmask of NetFeature* flags.
-// flags is a bitmask of NetFlag* flags.
-func (c *Context) AddNetUnixStream(path string, fd int, mac [6]byte, features, flags uint32) error {
+func (c *Context) AddNetUnixStream(cfg NetUnixConfig) error {
 	var cPath *C.char
-	if path != "" {
-		cPath = C.CString(path)
+	if cfg.Path != "" {
+		cPath = C.CString(cfg.Path)
 		defer C.free(unsafe.Pointer(cPath))
 	}
 	return checkRet(
 		C.krun_add_net_unixstream(
-			C.uint32_t(c.id), cPath, C.int(fd),
-			(*C.uint8_t)(unsafe.Pointer(&mac[0])),
-			C.uint32_t(features), C.uint32_t(flags),
+			C.uint32_t(c.id), cPath, C.int(cfg.FD),
+			(*C.uint8_t)(unsafe.Pointer(&cfg.MAC[0])),
+			C.uint32_t(cfg.Features), C.uint32_t(cfg.Flags),
 		),
 		"krun_add_net_unixstream",
 	)
@@ -35,40 +29,32 @@ func (c *Context) AddNetUnixStream(path string, fd int, mac [6]byte, features, f
 
 // AddNetUnixGram adds a virtio-net device with a unixgram-based backend
 // (e.g., gvproxy or vmnet-helper).
-//
-// path and fd are mutually exclusive: pass "" for path when using fd,
-// or -1 for fd when using path.
-// mac is the 6-byte MAC address for the interface.
-// features is a bitmask of NetFeature* flags.
-// flags is a bitmask of NetFlag* flags.
-// If using gvproxy in vfkit mode with path, include [NetFlagVfkit] in flags.
-func (c *Context) AddNetUnixGram(path string, fd int, mac [6]byte, features, flags uint32) error {
+// If using gvproxy in vfkit mode with a path, include [NetFlagVfkit] in Flags.
+func (c *Context) AddNetUnixGram(cfg NetUnixConfig) error {
 	var cPath *C.char
-	if path != "" {
-		cPath = C.CString(path)
+	if cfg.Path != "" {
+		cPath = C.CString(cfg.Path)
 		defer C.free(unsafe.Pointer(cPath))
 	}
 	return checkRet(
 		C.krun_add_net_unixgram(
-			C.uint32_t(c.id), cPath, C.int(fd),
-			(*C.uint8_t)(unsafe.Pointer(&mac[0])),
-			C.uint32_t(features), C.uint32_t(flags),
+			C.uint32_t(c.id), cPath, C.int(cfg.FD),
+			(*C.uint8_t)(unsafe.Pointer(&cfg.MAC[0])),
+			C.uint32_t(cfg.Features), C.uint32_t(cfg.Flags),
 		),
 		"krun_add_net_unixgram",
 	)
 }
 
 // AddNetTap adds a virtio-net device with the TAP backend.
-// tapName is the TAP device name.
-// mac is the 6-byte MAC address for the interface.
-func (c *Context) AddNetTap(tapName string, mac [6]byte, features, flags uint32) error {
-	cTapName := C.CString(tapName)
+func (c *Context) AddNetTap(cfg NetTapConfig) error {
+	cTapName := C.CString(cfg.TapName)
 	defer C.free(unsafe.Pointer(cTapName))
 	return checkRet(
 		C.krun_add_net_tap(
 			C.uint32_t(c.id), cTapName,
-			(*C.uint8_t)(unsafe.Pointer(&mac[0])),
-			C.uint32_t(features), C.uint32_t(flags),
+			(*C.uint8_t)(unsafe.Pointer(&cfg.MAC[0])),
+			C.uint32_t(cfg.Features), C.uint32_t(cfg.Flags),
 		),
 		"krun_add_net_tap",
 	)

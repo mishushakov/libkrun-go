@@ -18,20 +18,20 @@ func (c *Context) SetWorkdir(workdirPath string) error {
 // SetExec sets the executable path, arguments, and environment variables
 // for the process to run inside the microVM.
 //
-// execPath is relative to the root configured with [Context.SetRoot].
-// argv is the argument list (argv[0] is typically the program name).
-// envp is the environment variables (e.g., "KEY=value"). Pass nil to
+// Path is relative to the root configured with [Context.SetRoot].
+// Args is the argument list (Args[0] is typically the program name).
+// Env is the environment variables (e.g., "KEY=value"). Pass nil to
 // auto-generate from the current process environment.
-func (c *Context) SetExec(execPath string, argv, envp []string) error {
-	cExec := C.CString(execPath)
+func (c *Context) SetExec(cfg ExecConfig) error {
+	cExec := C.CString(cfg.Path)
 	defer C.free(unsafe.Pointer(cExec))
 
-	cArgv := stringsToCArray(argv)
-	defer freeCStringArray(cArgv, len(argv))
+	cArgv := stringsToCArray(cfg.Args)
+	defer freeCStringArray(cArgv, len(cfg.Args))
 
-	cEnvp := stringsToCArray(envp)
-	if envp != nil {
-		defer freeCStringArray(cEnvp, len(envp))
+	cEnvp := stringsToCArray(cfg.Env)
+	if cfg.Env != nil {
+		defer freeCStringArray(cEnvp, len(cfg.Env))
 	}
 
 	return checkRet(

@@ -60,12 +60,12 @@ func run(kernel, disk, format, shared string, vcpus, ram int, cmdline string) er
 		return fmt.Errorf("create context: %w", err)
 	}
 
-	if err := ctx.SetVMConfig(uint8(vcpus), uint32(ram)); err != nil {
+	if err := ctx.SetVMConfig(krun.VMConfig{NumVCPUs: uint8(vcpus), RAMMiB: uint32(ram)}); err != nil {
 		return fmt.Errorf("set vm config: %w", err)
 	}
 
 	// Load the kernel.
-	if err := ctx.SetKernel(kernel, krun.KernelFormatRaw, "", cmdline); err != nil {
+	if err := ctx.SetKernel(krun.KernelConfig{Path: kernel, Cmdline: cmdline}); err != nil {
 		return fmt.Errorf("set kernel: %w", err)
 	}
 
@@ -74,24 +74,28 @@ func run(kernel, disk, format, shared string, vcpus, ram int, cmdline string) er
 	if err != nil {
 		return err
 	}
-	if err := ctx.AddDisk2("vda", disk, diskFmt, false); err != nil {
+	if err := ctx.AddDisk(krun.DiskConfig{BlockID: "vda", Path: disk, Format: diskFmt}); err != nil {
 		return fmt.Errorf("add disk: %w", err)
 	}
 
 	// Remount the disk as root filesystem.
-	if err := ctx.SetRootDiskRemount("/dev/vda1", "ext4", ""); err != nil {
+	if err := ctx.SetRootDiskRemount(krun.RootDiskRemountConfig{Device: "/dev/vda1", FSType: "ext4"}); err != nil {
 		return fmt.Errorf("set root disk remount: %w", err)
 	}
 
 	// Optionally share a host directory into the guest.
 	if shared != "" {
-		if err := ctx.AddVirtioFS("shared", shared); err != nil {
+		if err := ctx.AddVirtioFS(krun.VirtioFSConfig{Tag: "shared", Path: shared}); err != nil {
 			return fmt.Errorf("add virtiofs: %w", err)
 		}
 	}
 
 	// Set up a console using stdin/stdout/stderr.
-	if err := ctx.AddVirtioConsoleDefault(int(os.Stdin.Fd()), int(os.Stdout.Fd()), int(os.Stderr.Fd())); err != nil {
+	if err := ctx.AddVirtioConsoleDefault(krun.VirtioConsoleConfig{
+		InputFD:  int(os.Stdin.Fd()),
+		OutputFD: int(os.Stdout.Fd()),
+		ErrFD:    int(os.Stderr.Fd()),
+	}); err != nil {
 		return fmt.Errorf("add console: %w", err)
 	}
 

@@ -31,7 +31,7 @@ func TestSetPortMap(t *testing.T) {
 func TestAddNetUnixStream_Stub(t *testing.T) {
 	ctx := newTestContext(t)
 	mac := [6]byte{0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01}
-	err := ctx.AddNetUnixStream("/tmp/test.sock", -1, mac, 0, 0)
+	err := ctx.AddNetUnixStream(NetUnixConfig{Path: "/tmp/test.sock", FD: -1, MAC: mac})
 	if err == nil {
 		return // built with krun_net tag, real impl succeeded
 	}
@@ -43,7 +43,7 @@ func TestAddNetUnixStream_Stub(t *testing.T) {
 func TestAddNetUnixGram_Stub(t *testing.T) {
 	ctx := newTestContext(t)
 	mac := [6]byte{0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x02}
-	err := ctx.AddNetUnixGram("/tmp/test.sock", -1, mac, 0, 0)
+	err := ctx.AddNetUnixGram(NetUnixConfig{Path: "/tmp/test.sock", FD: -1, MAC: mac})
 	if err == nil {
 		return
 	}
@@ -55,7 +55,7 @@ func TestAddNetUnixGram_Stub(t *testing.T) {
 func TestAddNetTap_Stub(t *testing.T) {
 	ctx := newTestContext(t)
 	mac := [6]byte{0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x03}
-	err := ctx.AddNetTap("tap0", mac, 0, 0)
+	err := ctx.AddNetTap(NetTapConfig{TapName: "tap0", MAC: mac})
 	if err == nil {
 		return
 	}

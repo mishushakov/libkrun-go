@@ -5,15 +5,15 @@ import "testing"
 func TestAddVirtioFS(t *testing.T) {
 	ctx := newTestContext(t)
 	dir := t.TempDir()
-	if err := ctx.AddVirtioFS("myfs", dir); err != nil {
+	if err := ctx.AddVirtioFS(VirtioFSConfig{Tag: "myfs", Path: dir}); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestAddVirtioFS2(t *testing.T) {
+func TestAddVirtioFS_WithShmSize(t *testing.T) {
 	ctx := newTestContext(t)
 	dir := t.TempDir()
-	if err := ctx.AddVirtioFS2("myfs", dir, 256*1024*1024); err != nil {
+	if err := ctx.AddVirtioFS(VirtioFSConfig{Tag: "myfs", Path: dir, ShmSize: 256 * 1024 * 1024}); err != nil {
 		t.Fatal(err)
 	}
 }

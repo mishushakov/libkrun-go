@@ -8,24 +8,24 @@ import (
 func TestAddVsockPort(t *testing.T) {
 	ctx := newTestContext(t)
 	sockPath := filepath.Join(t.TempDir(), "vsock.sock")
-	if err := ctx.AddVsockPort(5000, sockPath); err != nil {
+	if err := ctx.AddVsockPort(VsockPortConfig{Port: 5000, Path: sockPath}); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestAddVsockPort2(t *testing.T) {
+func TestAddVsockPort_Listen(t *testing.T) {
 	ctx := newTestContext(t)
-	sockPath := filepath.Join(t.TempDir(), "vsock.sock")
 
 	t.Run("listen_false", func(t *testing.T) {
-		if err := ctx.AddVsockPort2(5001, sockPath, false); err != nil {
+		sockPath := filepath.Join(t.TempDir(), "vsock.sock")
+		if err := ctx.AddVsockPort(VsockPortConfig{Port: 5001, Path: sockPath}); err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	t.Run("listen_true", func(t *testing.T) {
-		sockPath2 := filepath.Join(t.TempDir(), "vsock2.sock")
-		if err := ctx.AddVsockPort2(5002, sockPath2, true); err != nil {
+		sockPath := filepath.Join(t.TempDir(), "vsock2.sock")
+		if err := ctx.AddVsockPort(VsockPortConfig{Port: 5002, Path: sockPath, Listen: true}); err != nil {
 			t.Fatal(err)
 		}
 	})
