@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"syscall"
 	"testing"
 	"unsafe"
@@ -204,6 +205,9 @@ func TestGetMaxVCPUs(t *testing.T) {
 }
 
 func TestCheckNestedVirt(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("CheckNestedVirt is only supported on macOS")
+	}
 	supported, err := CheckNestedVirt()
 	if err != nil {
 		t.Fatal(err)

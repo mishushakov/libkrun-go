@@ -47,7 +47,9 @@ func TestSetRootDiskRemount_Stub(t *testing.T) {
 	if err == nil {
 		return
 	}
-	if !errors.Is(err, syscall.ENOSYS) {
-		t.Fatalf("expected ENOSYS, got %v", err)
+	// ENOSYS when built without krun_blk; EINVAL when built with krun_blk
+	// but no disk has been configured on the context.
+	if !errors.Is(err, syscall.ENOSYS) && !errors.Is(err, syscall.EINVAL) {
+		t.Fatalf("expected ENOSYS or EINVAL, got %v", err)
 	}
 }

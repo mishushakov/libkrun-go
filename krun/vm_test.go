@@ -22,6 +22,9 @@ func TestSetRoot(t *testing.T) {
 }
 
 func TestSetNestedVirt(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("SetNestedVirt(true) is only supported on macOS")
+	}
 	ctx := newTestContext(t)
 	for _, enabled := range []bool{true, false} {
 		if err := ctx.SetNestedVirt(enabled); err != nil {
