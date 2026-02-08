@@ -27,7 +27,7 @@ jobs:
       - name: Build and install libkrun
         run: |
           cd libkrun
-          make
+          make BLK=1 NET=1
           sudo make install
           sudo ldconfig
 
