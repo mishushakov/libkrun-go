@@ -27,6 +27,7 @@ jobs:
       - name: Install libkrunfw
         run: |
           curl -fL https://github.com/containers/libkrunfw/releases/download/v5.2.0/libkrunfw-x86_64.tgz | tar xz
+          sudo mkdir -p /usr/local/lib64
           sudo cp lib64/* /usr/local/lib64/
           sudo ldconfig
 
