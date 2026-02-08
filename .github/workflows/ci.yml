@@ -24,6 +24,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Install libkrunfw
+        run: |
+          curl -fL https://github.com/containers/libkrunfw/releases/download/v5.2.0/libkrunfw-x86_64.tgz | tar xz
+          sudo cp lib64/* /usr/local/lib64/
+          sudo ldconfig
+
       - name: Build and install libkrun
         run: |
           cd libkrun
