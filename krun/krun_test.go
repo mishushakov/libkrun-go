@@ -11,6 +11,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// When re-execed as an e2e helper subprocess, run the VM and exit.
+	if os.Getenv("KRUN_E2E_HELPER") == "1" {
+		e2eHelper() // never returns on success
+		os.Exit(1)
+	}
+
 	// SetLogLevel must be called before any other libkrun function
 	// because the Rust env_logger can only be initialized once.
 	if err := SetLogLevel(LogLevelOff); err != nil {
