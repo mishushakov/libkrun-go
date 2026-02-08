@@ -39,3 +39,5 @@ jobs:
 
       - name: Run tests
         run: go test -v -tags "krun_blk,krun_net" ./krun/
+        env:
+          LD_LIBRARY_PATH: /usr/local/lib64
