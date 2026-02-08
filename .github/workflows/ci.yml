@@ -1,4 +1,4 @@
-name: Test
+name: Run CI Tests
 
 on:
   push:
@@ -29,6 +29,7 @@ jobs:
           cd libkrun
           make BLK=1 NET=1
           sudo make install
+          echo /usr/local/lib64 | sudo tee /etc/ld.so.conf.d/libkrun.conf
           sudo ldconfig
 
       - name: Set up Go
