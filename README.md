@@ -239,23 +239,6 @@ See the [`examples/`](examples/) directory:
 - **[basic](examples/basic/)** — Run a command in a microVM using a host directory
 - **[vm-with-disk](examples/vm-with-disk/)** — Boot from a disk image with a custom kernel
 
-### macOS: run the basic example
-
-```bash
-cd examples/basic
-go build -o basic .
-./mkrootfs.sh alpine ./rootfs
-codesign --entitlements entitlements.plist --force -s - basic
-./basic ./rootfs /bin/uname -a
-```
-
-Explanation:
-- `cd examples/basic` — use the example directory that includes the rootfs script and entitlements file.
-- `go build -o basic .` — build a standalone binary; `go run` cannot be used because the binary must be signed.
-- `./mkrootfs.sh alpine ./rootfs` — create a minimal root filesystem from an Alpine container image.
-- `codesign --entitlements entitlements.plist --force -s - basic` — sign the binary with the Hypervisor entitlement required by macOS for apps that use Hypervisor.framework; without this, the VM fails to start.
-- `./basic ./rootfs /bin/uname -a` — run a command inside the microVM using the generated rootfs.
-
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE) for details.
