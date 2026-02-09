@@ -8,8 +8,10 @@
 package krun
 
 /*
-#cgo CFLAGS: -I${SRCDIR}/../libkrun/include
-#cgo LDFLAGS: -lkrun
+#cgo darwin pkg-config: libkrun
+#cgo darwin LDFLAGS: -Wl,-rpath,/opt/homebrew/lib
+#cgo linux CFLAGS: -I${SRCDIR}/../libkrun/include
+#cgo linux LDFLAGS: -lkrun
 #include <libkrun.h>
 #include <stdlib.h>
 */
