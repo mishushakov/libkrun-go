@@ -20,9 +20,10 @@ sudo make install
 
 ### macOS
 
-libkrunfw (the firmware) is available via Homebrew:
+libkrunfw (the firmware) is available via Homebrew (repo [here](https://github.com/slp/homebrew-krun)):
 
 ```bash
+brew tap slp/krun
 brew install libkrunfw
 ```
 
