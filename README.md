@@ -20,14 +20,14 @@ sudo make install
 
 ### macOS
 
-libkrunfw (the firmware) is available via Homebrew (repo [here](https://github.com/slp/homebrew-krun)):
+Install libkrun via Homebrew (repo [here](https://github.com/slp/homebrew-krun)):
+
+If you prefer, you can also build and install libkrun from source.
 
 ```bash
 brew tap slp/krun
 brew install libkrun pkg-config
 ```
-
-libkrun itself must be installed (either via Homebrew or from source).
 
 `pkg-config` is used on macOS to locate libkrun headers and libraries from Homebrew.
 If you installed libkrun via Homebrew, make sure `pkg-config` can find `libkrun.pc` (Homebrew usually handles this automatically). If not, set:
@@ -36,7 +36,7 @@ If you installed libkrun via Homebrew, make sure `pkg-config` can find `libkrun.
 export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
 ```
 
-On macOS, binaries are linked with an rpath to `/opt/homebrew/lib` for a smoother Homebrew experience. If the runtime loader still cannot find `libkrunfw.5.dylib`, set a library search path before running your binary:
+On macOS, binaries include an rpath to `/opt/homebrew/lib` so Homebrew installs work out of the box. If the runtime loader still cannot find the installed libraries, set a library search path before running your binary:
 
 ```bash
 export DYLD_LIBRARY_PATH="/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
@@ -238,6 +238,23 @@ See the [`examples/`](examples/) directory:
 - **[features](examples/features/)** — Query library capabilities (no rootfs needed)
 - **[basic](examples/basic/)** — Run a command in a microVM using a host directory
 - **[vm-with-disk](examples/vm-with-disk/)** — Boot from a disk image with a custom kernel
+
+### macOS: run the basic example
+
+```bash
+cd examples/basic
+go build -o basic .
+./mkrootfs.sh alpine ./rootfs
+codesign --entitlements entitlements.plist --force -s - basic
+./basic ./rootfs /bin/uname -a
+```
+
+Explanation:
+- `cd examples/basic` — use the example directory that includes the rootfs script and entitlements file.
+- `go build -o basic .` — build a standalone binary; `go run` cannot be used because the binary must be signed.
+- `./mkrootfs.sh alpine ./rootfs` — create a minimal root filesystem from an Alpine container image.
+- `codesign --entitlements entitlements.plist --force -s - basic` — sign the binary with the Hypervisor entitlement required by macOS for apps that use Hypervisor.framework; without this, the VM fails to start.
+- `./basic ./rootfs /bin/uname -a` — run a command inside the microVM using the generated rootfs.
 
 ## License
 
