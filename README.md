@@ -8,7 +8,7 @@ Go bindings for [libkrun](https://github.com/containers/libkrun), a dynamic libr
 go get github.com/mishushakov/libkrun-go/krun
 ```
 
-libkrun must be installed on your system. The bundled header in `libkrun/include/libkrun.h` is used at build time, but the shared library (`libkrun.so` or `libkrun.dylib`) must be available to the linker.
+libkrun must be installed on your system. The bundled header in `libkrun/include/libkrun.h` is used at build time when the submodule is present. Otherwise, `pkg-config` is used to locate headers and the shared library (`libkrun.so` or `libkrun.dylib`), and you can override paths with `CGO_CFLAGS`/`CGO_LDFLAGS`.
 
 ### Building libkrun from source
 
@@ -20,13 +20,27 @@ sudo make install
 
 ### macOS
 
-libkrunfw (the firmware) is available via Homebrew:
+Install libkrun via Homebrew (repo [here](https://github.com/slp/homebrew-krun)):
+
+If you prefer, you can also build and install libkrun from source.
 
 ```bash
-brew install libkrunfw
+brew tap slp/krun
+brew install libkrun pkg-config
 ```
 
-libkrun itself must be built from source.
+`pkg-config` is used on macOS to locate libkrun headers and libraries from Homebrew.
+If you installed libkrun via Homebrew, make sure `pkg-config` can find `libkrun.pc` (Homebrew usually handles this automatically). If not, set:
+
+```bash
+export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
+```
+
+On macOS, binaries include an rpath to `/opt/homebrew/lib` so Homebrew installs work out of the box. If the runtime loader still cannot find the installed libraries, set a library search path before running your binary:
+
+```bash
+export DYLD_LIBRARY_PATH="/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
+```
 
 ## Usage
 
