@@ -1,4 +1,4 @@
 [submodule "libkrun"]
 	path = libkrun
-	url = https://github.com/containers/libkrun.git
-	branch = main
+	url = https://github.com/libkrun/libkrun.git
+	branch = stable-1.19.x

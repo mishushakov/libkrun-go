@@ -1,6 +1,6 @@
 # libkrun-go
 
-Go bindings for [libkrun](https://github.com/containers/libkrun), a dynamic library for creating lightweight microVMs using KVM (Linux) or HVF (macOS/ARM64).
+Go bindings for [libkrun](https://github.com/libkrun/libkrun) (v1.19.x API), a dynamic library for creating lightweight microVMs using KVM (Linux) or HVF (macOS/ARM64).
 
 ## Installation
 
@@ -115,7 +115,8 @@ The typical workflow is:
 | `InitLog(targetFD, level, style, options)` | Initialize logging with full control |
 | `HasFeature(feature)` | Check if a feature was enabled at build time |
 | `GetMaxVCPUs()` | Query max vCPUs supported by the hypervisor |
-| `CheckNestedVirt()` | Check nested virtualization support (macOS) |
+| `CheckNestedVirt()` | Check nested virtualization support |
+| `GetDefaultInit()` | Get a copy of the built-in init binary (`init-blob` feature) |
 
 ### Context methods
 
@@ -125,12 +126,13 @@ The typical workflow is:
 |--------|-------------|
 | `SetVMConfig(VMConfig)` | Set vCPU count and RAM |
 | `SetRoot(rootPath)` | Set root filesystem path |
-| `SetNestedVirt(enabled)` | Enable/disable nested virtualization (macOS) |
+| `DisableImplicitInit()` | Don't inject `/init.krun` into the root filesystem |
+| `SetNestedVirt(enabled)` | Enable/disable nested virtualization |
 | `SplitIRQChip(enable)` | Split IRQCHIP between host and guest |
 | `SetUID(uid)` | Set user ID before VM startup |
 | `SetGID(gid)` | Set group ID before VM startup |
 | `SetSMBIOSOEMStrings(oemStrings)` | Set SMBIOS OEM Strings |
-| `GetShutdownEventFD()` | Get file descriptor for shutdown signaling (libkrun-efi) |
+| `GetShutdownEventFD()` | Get a caller-owned eventfd for orderly guest shutdown (macOS/aarch64) |
 
 #### Execution
 
@@ -152,7 +154,9 @@ The typical workflow is:
 
 | Method | Description |
 |--------|-------------|
-| `AddVirtioFS(VirtioFSConfig)` | Add a virtio-fs shared directory |
+| `AddVirtioFS(VirtioFSConfig)` | Add a virtio-fs shared directory (optionally read-only, with permission semantics; use `FSRootTag` for the root fs) |
+| `FSAddOverlayFile(fsTag, path, data, mode, oneShot)` | Add a memory-backed virtual file to a virtio-fs device |
+| `FSAddOverlayDir(fsTag, path, mode)` | Add an empty virtual directory to a virtio-fs device |
 
 #### Network
 
@@ -169,6 +173,7 @@ The typical workflow is:
 | Method | Description |
 |--------|-------------|
 | `SetGPUOptions(GPUConfig)` | Enable and configure virtio-gpu |
+| `SetGPURenderServerFD(fd)` | Use a caller-started virgl render server |
 | `AddDisplay(DisplayConfig)` | Add a display output (returns display ID) |
 | `DisplaySetEDID(displayID, edidBlob)` | Set custom EDID for a display |
 | `DisplaySetDPI(displayID, dpi)` | Set display DPI |

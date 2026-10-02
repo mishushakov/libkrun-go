@@ -21,6 +21,16 @@ func TestSetRoot(t *testing.T) {
 	}
 }
 
+func TestDisableImplicitInit(t *testing.T) {
+	ctx := newTestContext(t)
+	if err := ctx.DisableImplicitInit(); err != nil {
+		t.Fatal(err)
+	}
+	if err := ctx.SetRoot(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSetNestedVirt(t *testing.T) {
 	if runtime.GOOS != "darwin" {
 		t.Skip("SetNestedVirt(true) is only supported on macOS")

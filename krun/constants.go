@@ -50,6 +50,26 @@ const (
 	SyncFull SyncMode = 2
 )
 
+// FSRootTag is the virtio-fs tag used for the root filesystem. It can be used
+// with [Context.AddVirtioFS] instead of [Context.SetRoot] for more control over
+// root filesystem parameters (e.g. read-only, DAX window size), and as the tag
+// for [Context.FSAddOverlayFile] and [Context.FSAddOverlayDir].
+const FSRootTag = "/dev/root"
+
+// FSSemantics selects the permission semantics emulated by a virtio-fs device.
+type FSSemantics uint32
+
+const (
+	// FSSemanticsLinuxComplete is as close as possible to the common semantics
+	// of Linux file systems.
+	FSSemanticsLinuxComplete FSSemantics = 0
+	// FSSemanticsLinuxSimplified is like [FSSemanticsLinuxComplete], except that
+	// idmaps are not supported, ownership bits are ignored (always reporting the
+	// uid/gid of the requesting guest process), and permission bits are stored
+	// in the host rather than as extended attributes.
+	FSSemanticsLinuxSimplified FSSemantics = 1
+)
+
 // KernelFormat represents the format of a kernel image.
 type KernelFormat uint32
 
@@ -77,6 +97,7 @@ const (
 	FeatureIntelTDX          Feature = 8
 	FeatureAWSNitro          Feature = 9
 	FeatureVirglResourceMap2 Feature = 10
+	FeatureInitBlob          Feature = 11
 )
 
 // Network flags.
@@ -84,6 +105,9 @@ const (
 	// NetFlagVfkit sends the VFKIT magic after establishing the connection,
 	// as required by gvproxy in vfkit mode.
 	NetFlagVfkit uint32 = 1 << 0
+	// NetFlagDHCPClient runs the embedded DHCP client in the guest init to
+	// configure the interface.
+	NetFlagDHCPClient uint32 = 1 << 1
 )
 
 // Network feature flags (from virtio_net.h).

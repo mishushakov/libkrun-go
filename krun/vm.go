@@ -17,13 +17,26 @@ func (c *Context) SetVMConfig(cfg VMConfig) error {
 
 // SetRoot sets the path to be used as root for the microVM.
 // Not available in libkrun-SEV.
+//
+// For more control over the root filesystem (e.g. read-only, DAX window size),
+// use [Context.AddVirtioFS] with [FSRootTag] instead.
 func (c *Context) SetRoot(rootPath string) error {
 	cPath := C.CString(rootPath)
 	defer C.free(unsafe.Pointer(cPath))
 	return checkRet(C.krun_set_root(C.uint32_t(c.id), cPath), "krun_set_root")
 }
 
-// SetNestedVirt enables or disables nested virtualization (macOS only).
+// DisableImplicitInit prevents libkrun from injecting the default init binary
+// (/init.krun) into the root filesystem. Must be called before [Context.SetRoot].
+//
+// This is a no-op when libkrun is built without the init-blob feature. Callers
+// can inject an init binary themselves with [GetDefaultInit] and
+// [Context.FSAddOverlayFile].
+func (c *Context) DisableImplicitInit() error {
+	return checkRet(C.krun_disable_implicit_init(C.uint32_t(c.id)), "krun_disable_implicit_init")
+}
+
+// SetNestedVirt enables or disables nested virtualization.
 func (c *Context) SetNestedVirt(enabled bool) error {
 	return checkRet(
 		C.krun_set_nested_virt(C.uint32_t(c.id), C.bool(enabled)),
@@ -63,8 +76,11 @@ func (c *Context) SetSMBIOSOEMStrings(oemStrings []string) error {
 }
 
 // GetShutdownEventFD returns a file descriptor that can be used to signal
-// the guest to shut down. Only available in libkrun-efi.
+// the guest to shut down orderly. Calling it enables the guest shutdown device
+// for the context. Only available on macOS/aarch64.
 // Must be called before [Context.StartEnter].
+//
+// The returned file descriptor is owned by the caller, who must close it.
 func (c *Context) GetShutdownEventFD() (int, error) {
 	ret := C.krun_get_shutdown_eventfd(C.uint32_t(c.id))
 	if ret < 0 {

@@ -21,6 +21,16 @@ func (c *Context) SetGPUOptions(cfg GPUConfig) error {
 	)
 }
 
+// SetGPURenderServerFD sets the file descriptor of the virgl render server to
+// use instead of having libvirglrenderer start it on its own. This gives the
+// caller full control over the context in which the render server runs.
+func (c *Context) SetGPURenderServerFD(renderServerFD int) error {
+	return checkRet(
+		C.krun_set_gpu_render_server_fd(C.uint32_t(c.id), C.int(renderServerFD)),
+		"krun_set_gpu_render_server_fd",
+	)
+}
+
 // AddDisplay configures a display output for the VM.
 // A display backend must also be set via [Context.SetDisplayBackend].
 // Returns the display ID (0 to [MaxDisplays]-1) on success.

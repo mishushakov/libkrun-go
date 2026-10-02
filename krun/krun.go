@@ -25,6 +25,9 @@ import (
 // Context represents a libkrun VM configuration context.
 type Context struct {
 	id uint32
+	// allocs holds C memory that libkrun references for the VM lifetime
+	// (e.g. overlay file contents). It is released by Free.
+	allocs []unsafe.Pointer
 }
 
 // ID returns the underlying context ID.
@@ -84,7 +87,14 @@ func CreateContext() (*Context, error) {
 
 // Free releases the configuration context.
 func (c *Context) Free() error {
-	return checkRet(C.krun_free_ctx(C.uint32_t(c.id)), "krun_free_ctx")
+	if err := checkRet(C.krun_free_ctx(C.uint32_t(c.id)), "krun_free_ctx"); err != nil {
+		return err
+	}
+	for _, p := range c.allocs {
+		C.free(p)
+	}
+	c.allocs = nil
+	return nil
 }
 
 // StartEnter starts and enters the microVM. This function consumes the context.
@@ -112,7 +122,7 @@ func GetMaxVCPUs() (int, error) {
 	return int(ret), nil
 }
 
-// CheckNestedVirt checks if nested virtualization is supported (macOS only).
+// CheckNestedVirt checks if nested virtualization is supported.
 func CheckNestedVirt() (bool, error) {
 	ret := C.krun_check_nested_virt()
 	if ret < 0 {

@@ -1,3 +1,3 @@
 module github.com/mishushakov/libkrun-go
 
-go 1.25.5
+go 1.27
